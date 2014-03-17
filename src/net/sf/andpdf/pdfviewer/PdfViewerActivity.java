@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
-import android.graphics.Bitmap.Config;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,11 +32,13 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -62,7 +63,7 @@ public abstract class PdfViewerActivity extends Activity {
 	private static final float STARTZOOM = 1.0f;
 	
 	private static final float MIN_ZOOM = 0.25f;
-	private static final float MAX_ZOOM = 3.0f;
+	private static final float MAX_ZOOM = 2.0f;
 	private static final float ZOOM_INCREMENT = 1.5f;
 	
 	private static final String TAG = "PDFVIEWER";
@@ -78,13 +79,13 @@ public abstract class PdfViewerActivity extends Activity {
 	public static final boolean DEFAULTUSEFONTSUBSTITUTION = false;
 	public static final boolean DEFAULTKEEPCACHES = true;
     
-	private final static int MENU_NEXT_PAGE = 1;
-	private final static int MENU_PREV_PAGE = 2;
-	private final static int MENU_GOTO_PAGE = 3;
-	private final static int MENU_ZOOM_IN   = 4;
-	private final static int MENU_ZOOM_OUT  = 5;
-	private final static int MENU_BACK      = 6;
-	private final static int MENU_CLEANUP   = 7;
+	public final static int MENU_NEXT_PAGE = 1;
+	public final static int MENU_PREV_PAGE = 2;
+	public final static int MENU_GOTO_PAGE = 3;
+	public final static int MENU_ZOOM_IN   = 4;
+	public final static int MENU_ZOOM_OUT  = 5;
+	public final static int MENU_BACK      = 6;
+	public final static int MENU_CLEANUP   = 7;
 	
 	private final static int DIALOG_PAGENUM = 1;
 	
@@ -257,7 +258,7 @@ public abstract class PdfViewerActivity extends Activity {
 //			        	f.delete();
 //			        	Log.e(TAG, "DEBUG.START");
 //			        	Debug.startMethodTracing("andpdf");
-			        	showPage(page, zoom);
+			        	showPage(page, zoom, 0);
 //			        	Debug.stopMethodTracing();
 //			        	Log.e(TAG, "DEBUG.STOP");
 				        
@@ -483,6 +484,7 @@ public abstract class PdfViewerActivity extends Activity {
     	//private String mLine2;
     	//private String mLine3;
     	private ImageView mImageView;
+    	//private FullScrollView mScrollView;
     	//private TextView mLine1View; 
     	//private TextView mLine2View; 
     	//private TextView mLine3View; 
@@ -494,24 +496,23 @@ public abstract class PdfViewerActivity extends Activity {
         
         public GraphView(Context context) {
             super(context);
+			//LinearLayout.LayoutParams lpFull = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+            //setLayoutParams(lpFull);
 
             //setContentView(R.layout.graphics_view);
             // layout params
 			LinearLayout.LayoutParams lpWrap1 = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT,1);
 			LinearLayout.LayoutParams lpWrap10 = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT,10);
 
-			lpWrap1.gravity = Gravity.CENTER_HORIZONTAL;
-			lpWrap10.gravity = Gravity.CENTER_HORIZONTAL;
-			
             // vertical layout
 			LinearLayout vl=new LinearLayout(context);
 			vl.setLayoutParams(lpWrap10);
 			vl.setOrientation(LinearLayout.VERTICAL);
 
 			if (mOldGraphView == null)
-				progress = ProgressDialog.show(PdfViewerActivity.this, "Loading", "Loading PDF Page", true, true);
+				progress = ProgressDialog.show(PdfViewerActivity.this, "Loading", "Loading PDF Page", true, true);//TODO: translate
 			
-			addNavButtons(vl);
+				addNavButtons(vl, Gravity.LEFT);
 		        // remember page button for updates
 		        mBtPage2 = mBtPage;
 		        
@@ -520,6 +521,10 @@ public abstract class PdfViewerActivity extends Activity {
 		        updateImage();
 		        mImageView.setLayoutParams(lpWrap1);
 		        mImageView.setPadding(5, 5, 5, 5);
+		        
+		        //mScrollView = new FullScrollView(context);
+		        //mScrollView.addView(mImageView);
+		        
 		        vl.addView(mImageView);
 		        /*mImageView = (ImageView) findViewById(R.id.pdf_image);
 		        if (mImageView == null) {
@@ -568,7 +573,7 @@ public abstract class PdfViewerActivity extends Activity {
 				});
 				*/
 
-		        //addNavButtons(vl);
+		        addNavButtons(vl, Gravity.RIGHT);
 			    
 			setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, 100));
 			setBackgroundColor(Color.LTGRAY);
@@ -579,17 +584,21 @@ public abstract class PdfViewerActivity extends Activity {
 			addView(vl);
         }
 
-        private void addNavButtons(ViewGroup vg) {
+        private void addNavButtons(ViewGroup vg, int gravity) {
         	
 	        addSpace(vg, 6, 6);
 	        
 			LinearLayout.LayoutParams lpChild1 = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT,1);
 			LinearLayout.LayoutParams lpWrap10 = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT,10);
-        	
+			lpWrap10.weight = 1.0f;
+			lpWrap10.gravity=gravity;
+            
         	Context context = vg.getContext();
 			LinearLayout hl=new LinearLayout(context);
 			hl.setLayoutParams(lpWrap10);
+			hl.setGravity(gravity);
 			hl.setOrientation(LinearLayout.HORIZONTAL);
+			hl.setMinimumHeight(42);
 
 				// zoom out button
 				bZoomOut=new ImageButton(context);
@@ -710,6 +719,7 @@ public abstract class PdfViewerActivity extends Activity {
         	uiHandler.post(new Runnable() {
 				public void run() {
 		        	mImageView.setImageBitmap(mBi);
+		        	scrollTo(0,0);//TODO: is this right? add in settings?
 		        	
 		        	/*if (progress != null)
 		        		progress.dismiss();*/
@@ -718,9 +728,13 @@ public abstract class PdfViewerActivity extends Activity {
 		}
 
 		private void setPageBitmap(Bitmap bi) {
-			if (bi != null)
-				mBi = bi;
-			else {
+			if (mBi != null) {				
+				mBi.recycle();
+				mBi = null;
+				System.gc();
+			}
+			mBi = bi;
+			//else {
 				/*
 				mBi = Bitmap.createBitmap(100, 100, Config.RGB_565);
 	            Canvas can = new Canvas(mBi);
@@ -734,7 +748,7 @@ public abstract class PdfViewerActivity extends Activity {
 	            paint.setColor(Color.BLACK);
 	            can.drawText("Bitmap", 10, 50, paint);
 	            */
-			}
+			//}
 		}
         
 		protected void updateTexts() {
@@ -770,13 +784,13 @@ public abstract class PdfViewerActivity extends Activity {
 
 	
 	
-    private void showPage(int page, float zoom) throws Exception {
+    private void showPage(int page, float zoom, int tryAgain) throws Exception {
         //long startTime = System.currentTimeMillis();
         //long middleTime = startTime;
     	try {
 	        // free memory from previous page
-	        mGraphView.setPageBitmap(null);
-	        mGraphView.updateImage();
+	        //mGraphView.setPageBitmap(null);
+	        //mGraphView.updateImage();
 	        
 	        // Only load the page if it's a different page (i.e. not just changing the zoom level) 
 	        if (mPdfPage == null || mPdfPage.getPageNumber() != page) {
@@ -798,8 +812,13 @@ public abstract class PdfViewerActivity extends Activity {
 	        if (progress != null)
 	        	progress.dismiss();
 		} catch (Throwable e) {
-			Log.e(TAG, e.getMessage(), e);
-			mGraphView.showText("Exception: "+e.getMessage());
+//			if(tryAgain < 100) {
+//				Log.e(TAG, "" + tryAgain);
+//				showPage(page, zoom, tryAgain++);
+//			} else {
+				Log.e(TAG, e.getMessage(), e);
+				mGraphView.showText("Exception: "+e.getMessage());
+//			}
 		}
         //long stopTime = System.currentTimeMillis();
         //mGraphView.pageParseMillis = middleTime-startTime;

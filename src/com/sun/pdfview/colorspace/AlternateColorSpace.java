@@ -50,18 +50,28 @@ public class AlternateColorSpace extends PDFColorSpace {
             return alternate.getNumComponents();
         }
     }
+    
+    @Override
+    public int toColor(float[] fcomp) {
 
-    @Override public int toColor(float[] fcomp) {
+        float average = 0;
+        float k;
         if (function != null) {
             // translate values using function
             fcomp = function.calculate(fcomp);
         }
-    	float k = fcomp[3];
-    	float w = 255*(1-k);
-    	float r = w*(1-fcomp[0]);
-    	float g = w*(1-fcomp[1]);
-    	float b = w*(1-fcomp[2]);
-    	return Color.rgb((int)r,(int)g,(int)b);
+        //checks fcomp lenght...
+        if (fcomp.length <= 3) {
+            //this is not a good solution
+            k = 1;
+        } else {
+        	k = fcomp[3];
+        }
+        float w = 255 * (1 - k);
+        float r = w * (1 - fcomp[0]);
+        float g = w * (1 - fcomp[1]);
+        float b = w * (1 - fcomp[2]);
+        return Color.rgb((int) r, (int) g, (int) b);
     }
 
     @Override public int toColor(int[] icomp) {

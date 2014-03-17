@@ -164,8 +164,8 @@ public class FullScrollView extends FrameLayout {
      * When set to true, the scroll view measure its child to make it fill the currently
      * visible area.
      */
-    private boolean mFillViewportX;
-    private boolean mFillViewportY;
+    private boolean mFillViewportX=false;
+    private boolean mFillViewportY=false;
 
     /**
      * Whether arrow scrolling is animated.

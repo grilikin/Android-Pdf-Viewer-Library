@@ -279,14 +279,15 @@ public class PDFObject {
 
                 // Can't use the direct buffer, so copy the data (bad)
                 data = new byte[streamBuf.remaining()];
-                
                 /* 
                  * FYI
                  * This is the same hack as explained in FlateDecode
                  * //streamBuf.get(data);
                  */
+
                 data[0] = streamBuf.get();
                 streamBuf.get(data, 1, data.length - 1);
+
 
                 // return the stream to its starting position
                 streamBuf.flip();

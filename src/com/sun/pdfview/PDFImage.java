@@ -261,26 +261,11 @@ public class PDFImage {
 			throw new UnsupportedOperationException("image without colorspace");
 		} else if (colorSpace.getType() == PDFColorSpace.COLORSPACE_RGB) {
 			int maxH = getHeight();
-			int maxW = getWidth();
-			if (imgBytes.length == 2*maxW*maxH) {
-				// decoded JPEG as RGB565
-				bi = Bitmap.createBitmap(maxW, maxH, Config.RGB_565);
-				bi.copyPixelsFromBuffer(ByteBuffer.wrap(imgBytes));
-			}
-			else {
-				// create RGB image
-				bi = Bitmap.createBitmap(getWidth(), getHeight(), Config.ARGB_8888);
-				int[] line = new int[maxW]; 
-				int n=0;
-				for (int h = 0; h<maxH; h++) {
-					for (int w = 0; w<getWidth(); w++) {
-						line[w] = ((0xff&(int)imgBytes[n])<<8|(0xff&(int)imgBytes[n+1]))<<8|(0xff&(int)imgBytes[n+2])|0xFF000000;
-	//            			line[w] = Color.rgb(0xff&(int)imgBytes[n], 0xff&(int)imgBytes[n+1],0xff&(int)imgBytes[n+2]);
-						n+=3;
-					}
-					bi.setPixels(line, 0, maxW, 0, h, maxW, 1);
-				}
-			}
+			int maxW = getWidth(); 
+			
+			bi = Bitmap.createBitmap(maxW, maxH, imgBytes.length == 2*maxW*maxH ? Config.RGB_565 : Config.ARGB_8888 );
+            bi.copyPixelsFromBuffer(ByteBuffer.wrap(imgBytes));
+
 		}
 		else if (colorSpace.getType() == PDFColorSpace.COLORSPACE_GRAY) {
 			// create gray image
